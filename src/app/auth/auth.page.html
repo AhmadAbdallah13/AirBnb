@@ -65,7 +65,7 @@
             expand="block"
             [disabled]="!loginForm.valid"
           >
-            Login
+            {{ isLogin ? 'Login' :'Signup' }}
           </ion-button>
         </ion-col>
       </ion-row>
