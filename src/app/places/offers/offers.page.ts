@@ -3,7 +3,7 @@ import { IonItemSliding } from '@ionic/angular';
 import { Router } from '@angular/router';
 
 import { PlacesService } from '../places.service';
-import {Place} from '../place.model';
+import { Place } from '../place.model';
 
 @Component({
   selector: 'app-offers',
@@ -13,16 +13,15 @@ import {Place} from '../place.model';
 export class OffersPage implements OnInit {
   offers: Place[];
 
-  constructor(private placesService: PlacesService, private route: Router) { }
+  constructor(private placesService: PlacesService, private route: Router) {}
 
   ngOnInit() {
     this.offers = this.placesService.places;
   }
 
-  onEdit(offerId: string, slidingItem:IonItemSliding) {
-    slidingItem.close()
-    this.route.navigate(['/', 'places', 'tabs', 'offers', offerId])
-    console.log("Editting Item", offerId)
+  onEdit(offerId: string, slidingItem: IonItemSliding) {
+    slidingItem.close();
+    this.route.navigate(['/', 'places', 'tabs', 'offers', 'edit', offerId]);
+    console.log('Editting Item', offerId);
   }
-
 }
