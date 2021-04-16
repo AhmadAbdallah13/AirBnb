@@ -1,48 +1,91 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { take, map, delay, tap } from 'rxjs/operators';
+import { take, map, delay, tap, switchMap } from 'rxjs/operators';
 import { AuthService } from '../auth/auth.service';
 import { Place } from './place.model';
+
+// [new Place(
+//   'p1',
+//   'Manchester Condom',
+//   'near Old Trafford',
+//   'https://a0.muscache.com/im/pictures/06a7435e-1002-4c35-b0b4-0caa512351a2.jpg?im_w=1200',
+//   154,
+//   new Date('2020-01-01'),
+//   new Date('2020-12-31'),
+//   'abc'
+// ),
+// new Place(
+//   'p2',
+//   'Paris Apartment',
+//   'near parc de prans',
+//   'https://images.trvl-media.com/hotels/54000000/53160000/53159300/53159202/1bbaaf86_z.jpg',
+//   112,
+//   new Date('2020-01-01'),
+//   new Date('2020-12-31'),
+//   'abc'
+// ),
+// new Place(
+//   'p3',
+//   'Madrid Apartment',
+//   'near Bernabeu',
+//   'https://a0.muscache.com/im/pictures/4c478a53-3b63-4e13-bdde-9381fad45d3e.jpg?im_w=720',
+//   99,
+//   new Date('2020-01-01'),
+//   new Date('2020-12-31'),
+//   'xyz'
+// ),]
+
+interface PlaceData {
+  availableFrom: string;
+  availableTo: string;
+  description: string;
+  imageUrl: string;
+  price: number;
+  title: string;
+  userId: string;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class PlacesService {
-  private _places = new BehaviorSubject<Place[]>([
-    new Place(
-      'p1',
-      'Manchester Condom',
-      'near Old Trafford',
-      'https://a0.muscache.com/im/pictures/06a7435e-1002-4c35-b0b4-0caa512351a2.jpg?im_w=1200',
-      154,
-      new Date('2020-01-01'),
-      new Date('2020-12-31'),
-      'abc'
-    ),
-    new Place(
-      'p2',
-      'Paris Apartment',
-      'near parc de prans',
-      'https://images.trvl-media.com/hotels/54000000/53160000/53159300/53159202/1bbaaf86_z.jpg',
-      112,
-      new Date('2020-01-01'),
-      new Date('2020-12-31'),
-      'abc'
-    ),
-    new Place(
-      'p3',
-      'Madrid Apartment',
-      'near Bernabeu',
-      'https://a0.muscache.com/im/pictures/4c478a53-3b63-4e13-bdde-9381fad45d3e.jpg?im_w=720',
-      99,
-      new Date('2020-01-01'),
-      new Date('2020-12-31'),
-      'xyz'
-    ),
-  ]);
+  private _places = new BehaviorSubject<Place[]>([]);
 
   get places() {
     return this._places.asObservable();
+  }
+
+  fetchPlcaes() {
+    return this.httpC
+      .get<{ [key: string]: PlaceData }>(
+        'https://ion-tuto-default-rtdb.firebaseio.com/offered-places.json'
+      )
+      .pipe(
+        map((responseData) => {
+          const places = [];
+          for (const key in responseData) {
+            if (responseData.hasOwnProperty(key)) {
+              places.push(
+                new Place(
+                  key,
+                  responseData[key].title,
+                  responseData[key].description,
+                  responseData[key].imageUrl,
+                  responseData[key].price,
+                  new Date(responseData[key].availableFrom),
+                  new Date(responseData[key].availableTo),
+                  responseData[key].userId
+                )
+              );
+            }
+          }
+          return places;
+        }),
+        tap((places) => {
+          this._places.next(places);
+        })
+      );
   }
 
   getPlace(id: string) {
@@ -61,6 +104,7 @@ export class PlacesService {
     dateFrom: Date,
     dateTo: Date
   ) {
+    let generatedId: string;
     const newPlace = new Place(
       Math.random().toString(),
       title,
@@ -71,13 +115,29 @@ export class PlacesService {
       dateTo,
       this.authService.userId
     );
-    return this.places.pipe(
-      take(1),
-      delay(1000),
-      tap((places) => {
-        this._places.next(places.concat(newPlace));
-      })
-    );
+    return this.httpC
+      .post<{ name: string }>(
+        'https://ion-tuto-default-rtdb.firebaseio.com/offered-places.json',
+        { ...newPlace, id: null }
+      )
+      .pipe(
+        switchMap((responseData) => {
+          generatedId = responseData.name;
+          return this.places;
+        }),
+        take(1),
+        tap((places) => {
+          newPlace.id = generatedId;
+          this._places.next(places.concat(newPlace));
+        })
+      );
+    // return this.places.pipe(
+    //   take(1),
+    //   delay(1000),
+    //   tap((places) => {
+    //     this._places.next(places.concat(newPlace));
+    //   })
+    // );
   } // end addPlace
 
   updatePlace(placeId: string, title: string, description: string) {
@@ -102,5 +162,6 @@ export class PlacesService {
       })
     );
   }
-  constructor(private authService: AuthService) {}
+
+  constructor(private authService: AuthService, private httpC: HttpClient) {}
 }
