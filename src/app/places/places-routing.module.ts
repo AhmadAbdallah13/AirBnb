@@ -13,47 +13,56 @@ const routes: Routes = [
         children: [
           {
             path: '',
-            loadChildren: () => import('./discover/discover.module').then( m => m.DiscoverPageModule)
+            loadChildren: () =>
+              import('./discover/discover.module').then(
+                (m) => m.DiscoverPageModule
+              ),
           },
           {
             path: ':placeId',
-            loadChildren: () => import('./discover/place-detail/place-detail.module').then( m => m.PlaceDetailPageModule)
-          }
-        ] // end children of discover
+            loadChildren: () =>
+              import('./discover/place-detail/place-detail.module').then(
+                (m) => m.PlaceDetailPageModule
+              ),
+          },
+        ], // end children of discover
       },
       {
         path: 'offers',
         children: [
           {
             path: '',
-            loadChildren: () => import('./offers/offers.module').then( m => m.OffersPageModule)
+            loadChildren: () =>
+              import('./offers/offers.module').then((m) => m.OffersPageModule),
           },
           {
             path: 'new',
-            loadChildren: () => import('./offers/new-offer/new-offer.module').then( m => m.NewOfferPageModule)
+            loadChildren: () =>
+              import('./offers/new-offer/new-offer.module').then(
+                (m) => m.NewOfferPageModule
+              ),
           },
           {
             path: 'edit/:placeId',
-            loadChildren: () => import('./offers/edit-offer/edit-offer.module').then( m => m.EditOfferPageModule)
+            loadChildren: () =>
+              import('./offers/edit-offer/edit-offer.module').then(
+                (m) => m.EditOfferPageModule
+              ),
           },
-          {
-            path: ':placeId',
-            loadChildren: () => import('./offers/offer-bookings/offer-bookings.module').then( m => m.OfferBookingsPageModule)
-          },
-        ] // end children offers
+        ], // end children offers
       },
       {
         path: '',
         redirectTo: '/places/tabs/discover',
-        pathMatch: 'full'
-      }
-    ]
+        pathMatch: 'full',
+      },
+    ],
   },
   {
     path: '',
     redirectTo: '/places/tabs/discover',
-    pathMatch: 'full'
-  }
+    pathMatch: 'full',
+  },
 ];
 
 @NgModule({
