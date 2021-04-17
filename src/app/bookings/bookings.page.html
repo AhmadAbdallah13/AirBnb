@@ -13,14 +13,22 @@
       <ion-col
         sizeMd="6"
         offsetMd="3"
-        *ngIf="!loadedBooking || loadedBooking.length <= 0"
+        *ngIf="isLoading"
+        class="ion-text-center"
+      >
+        <ion-spinner color="primary"></ion-spinner>
+      </ion-col>
+      <ion-col
+        sizeMd="6"
+        offsetMd="3"
+        *ngIf="!isLoading &&(!loadedBooking || loadedBooking.length <= 0)"
       >
         <p class="ion-text-center">No Bookings Found. Sad we rab el 3ebad</p>
       </ion-col>
       <ion-col
         sizeMd="6"
         offsetMd="3"
-        *ngIf="loadedBooking && loadedBooking.length > 0"
+        *ngIf="!isLoading &&(loadedBooking && loadedBooking.length > 0)"
       >
         <ion-list>
           <ion-item-sliding
