@@ -117,32 +117,38 @@ export class PlacesService {
     dateTo: Date
   ) {
     let generatedId: string;
-    const newPlace = new Place(
-      Math.random().toString(),
-      title,
-      description,
-      'https://a0.muscache.com/im/pictures/4c478a53-3b63-4e13-bdde-9381fad45d3e.jpg?im_w=720',
-      price,
-      dateFrom,
-      dateTo,
-      this.authService.userId
+    let newPlace: Place;
+    return this.authService.userId.pipe(
+      take(1),
+      switchMap((userId) => {
+        if (!userId) {
+          throw new Error('No User Id Found!');
+        }
+        newPlace = new Place(
+          Math.random().toString(),
+          title,
+          description,
+          'https://a0.muscache.com/im/pictures/4c478a53-3b63-4e13-bdde-9381fad45d3e.jpg?im_w=720',
+          price,
+          dateFrom,
+          dateTo,
+          userId
+        );
+        return this.httpC.post<{ name: string }>(
+          'https://ion-tuto-default-rtdb.firebaseio.com/offered-places.json',
+          { ...newPlace, id: null }
+        );
+      }),
+      switchMap((responseData) => {
+        generatedId = responseData.name;
+        return this.places;
+      }),
+      take(1),
+      tap((places) => {
+        newPlace.id = generatedId;
+        this._places.next(places.concat(newPlace));
+      })
     );
-    return this.httpC
-      .post<{ name: string }>(
-        'https://ion-tuto-default-rtdb.firebaseio.com/offered-places.json',
-        { ...newPlace, id: null }
-      )
-      .pipe(
-        switchMap((responseData) => {
-          generatedId = responseData.name;
-          return this.places;
-        }),
-        take(1),
-        tap((places) => {
-          newPlace.id = generatedId;
-          this._places.next(places.concat(newPlace));
-        })
-      );
     // return this.places.pipe(
     //   take(1),
     //   delay(1000),

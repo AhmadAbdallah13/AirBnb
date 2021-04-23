@@ -8,6 +8,7 @@ import {
   NavController,
 } from '@ionic/angular';
 import { Subscription } from 'rxjs';
+import { switchMap, take, tap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
 import { BookingService } from 'src/app/bookings/booking.service';
 import { CreateBookingComponent } from '../../../bookings/create-booking/create-booking.component';
@@ -45,15 +46,27 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
         return;
       }
       this.isLoading = true;
-      this.placeSub = this.placesService
-        .getPlace(paramMap.get('placeId'))
+      let fetchedUserId: string;
+      this.authService.userId
+        .pipe(
+          take(1),
+          switchMap((userId) => {
+            if (!userId) {
+              throw new Error('No User Id Found!');
+            }
+            console.log('user id ', userId);
+            fetchedUserId = userId;
+            return this.placesService.getPlace(paramMap.get('placeId'));
+          })
+        )
         .subscribe(
           (place) => {
             this.place = place;
-            this.isBookable = place.userId !== this.authService.userId;
+            this.isBookable = place.userId !== fetchedUserId;
             this.isLoading = false;
           },
           (error) => {
+            console.log(error);
             this.alertCtrl
               .create({
                 header: 'An Error Occurred!',
